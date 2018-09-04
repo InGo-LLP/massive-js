@@ -15,7 +15,7 @@ SELECT * FROM (
     t.table_name AS name,
     parent.relname AS parent,
     array_agg(DISTINCT kc.column_name::text) FILTER (WHERE kc.column_name IS NOT NULL) AS pk,
-    array_agg(DISTINCT c.column_name::text) AS columns,
+    array_agg(DISTINCT c.attname::text) AS columns,
     TRUE AS is_insertable_into
   FROM information_schema.tables t
   LEFT OUTER JOIN information_schema.table_constraints tc
@@ -26,9 +26,10 @@ SELECT * FROM (
     ON kc.constraint_schema = tc.table_schema
     AND kc.table_name = tc.table_name
     AND kc.constraint_name = tc.constraint_name
-  JOIN information_schema.columns c
-    ON c.table_schema = t.table_schema
-    AND c.table_name = t.table_name
+  JOIN pg_attribute c
+    on c.attrelid = (t.table_schema || '.' || t.table_name)::regclass
+	AND    c.attnum > 0
+	AND    NOT c.attisdropped
   JOIN pg_catalog.pg_namespace nsp
     ON nsp.nspname = t.table_schema
   JOIN pg_catalog.pg_class cls
@@ -51,12 +52,13 @@ SELECT * FROM (
     t.table_name AS name,
     NULL AS parent,
     NULL AS pk,
-    array_agg(c.column_name::text) AS columns,
+    array_agg(c.attname::text) AS columns,
     CASE t.is_insertable_into WHEN 'YES' THEN TRUE ELSE FALSE END AS is_insertable_into
   FROM information_schema.tables t
-  JOIN information_schema.columns c
-    ON c.table_schema = t.table_schema
-    AND c.table_name = t.table_name
+  JOIN pg_attribute c
+    on c.attrelid = (t.table_schema || '.' || t.table_name)::regclass
+	AND    c.attnum > 0
+	AND    NOT c.attisdropped
   WHERE t.table_type = 'FOREIGN TABLE'
   GROUP BY t.table_schema, t.table_name, t.is_insertable_into
 ) tables
