@@ -1,6 +1,6 @@
 {
   "name": "massive",
-  "version": "5.2.0",
+  "version": "5.2.0-ingo1",
   "description": "A small query tool for Postgres that embraces json and makes life simpler",
   "homepage": "https://dmfay.github.io/massive-js/",
   "bugs": "https://github.com/dmfay/massive-js/issues",
@@ -75,6 +75,9 @@
     "mocha": "5.2.0",
     "nyc": "12.0.2",
     "standard-version": "4.4.0"
+  },
+  "publishConfig": {
+    "registry": "http://npm.ingo-internal.net/"
   },
   "repository": {
     "type": "git",
